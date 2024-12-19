@@ -14,6 +14,10 @@ class AppServiceProvider extends ServiceProvider
         //
     }
 
+    public function login(): void {
+    
+    }
+
     /**
      * Bootstrap any application services.
      */
