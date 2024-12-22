@@ -41,7 +41,7 @@ return [
         'http://localhost:8000',  // De exemplu, pentru aplicația ta Flutter (sau frontend-ul)
         'http://127.0.0.1:8000',
         'http://192.168.0.87:8000',
-        'https://0480-86-123-229-11.ngrok-free.app'
+        'https://viable-flamingo-advanced.ngrok-free.app' 
     ],
 
     /*
