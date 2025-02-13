@@ -32,5 +32,6 @@ class Kernel extends HttpKernel
      */
     protected $routeMiddleware = [
         'cors' => \App\Http\Middleware\CorsMiddleware::class, // Asigură că middleware-ul CORS este disponibil
+        'auth.api' => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
     ];
 }
