@@ -115,8 +115,15 @@ public function googleLogin(Request $request)
             'name' => $request->name,
             'email' => $request->email,
             'google_id' => $request->google_id,
-            'password' => Hash::make(uniqid()),  // Folosim o parolă aleatorie pentru autentificarea prin Google
+            'password' => Hash::make(uniqid()),  
+            'uid' => $request->uid ?? null, 
         ]);
+    }  else {
+        // Dacă utilizatorul există și nu are google_id, actualizează-l
+        if (!$user->google_id && $request->google_id) {
+            $user->google_id = $request->google_id;
+            $user->save();
+        }
     }
 
     // Generăm un token JWT pentru utilizator
