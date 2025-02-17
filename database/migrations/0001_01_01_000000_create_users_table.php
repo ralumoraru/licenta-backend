@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('google_id')->nullable();
             $table->string('password');
-            $table->string('firebase_uid')->nullable();
             
         });
 

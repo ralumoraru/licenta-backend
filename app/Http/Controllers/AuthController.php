@@ -13,64 +13,78 @@ use Illuminate\Support\Facades\Log;
 class AuthController extends Controller
 {
     public function register(Request $request)
-{
-    Log::info('Received registration request: ', $request->all()); // ✅ Debugging log
-
-    $rules = [
-        'uid' => 'required|string', 
-        'name' => 'required|string',
-        'email' => 'required|string|email|unique:users,email',
-        'password' => 'required|string|min:6',
-    ];
-
-    $validator = Validator::make($request->all(), $rules);
-    if ($validator->fails()) {
-        return response()->json($validator->errors(), 400);
-    }
-
-    $user = User::create([
-        'uid' => $request->uid,  // ✅ Salvează UID-ul
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-    ]);
-
-    Log::info('User created: ', $user->toArray()); 
-
-    $response = [
-        'user' => [
-            'id' => $user->id,
-            'uid' => $user->uid,  // Asigură-te că `uid` este salvat în modelul User
-            'name' => $user->name,
-            'email' => $user->email,
-            'created_at' => $user->created_at,
-            'updated_at' => $user->updated_at,
-        ],];
-    return response()->json($response, 200);
-
+    {
+        Log::info('Received registration request: ', $request->all());
     
-}
+        $rules = [
+            'uid' => 'required|string', 
+            'name' => 'required|string',
+            'email' => 'required|string|email|unique:users,email',
+            'password' => 'required|string|min:6',
+        ];
+    
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            Log::error('Validation failed: ', $validator->errors()->toArray());
+            return response()->json($validator->errors(), 400);
+        }
+    
+        try {
+            $user = User::create([
+                'uid' => $request->uid,
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+            ]);
+    
+            Log::info('User created successfully: ', $user->toArray());
+    
+            // Generăm token pentru utilizatorul nou creat
+            $token = JWTAuth::fromUser($user);
+    
+            // Construim răspunsul pentru client
+            $response = [
+                'user' => [
+                    'id' => $user->id,
+                    'uid' => $user->uid,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'created_at' => $user->created_at,
+                    'updated_at' => $user->updated_at,
+                ],
+                'token' => $token,  // Trimitem token-ul generat
+            ];
+    
+            return response()->json($response, 200);
+    
+        } catch (Exception $e) {
+            Log::error('Error creating user: ', ['message' => $e->getMessage()]);
+            return response()->json(['error' => 'Something went wrong while creating user'], 500);
+        }
+    }
+    
+
 public function getUserData(Request $request)
 {
     try {
-        // Verificăm dacă există token-ul în header-ul Authorization
-        $user = JWTAuth::parseToken()->authenticate();  // Obținem utilizatorul pe baza token-ului
-
+        $user = JWTAuth::parseToken()->authenticate();  
         if (!$user) {
+            Log::error('User not found');
             return response()->json(['error' => 'User not found'], 404);
         }
 
-        // Returnăm datele utilizatorului
-        return response()->json($user); // Returnează utilizatorul în format JSON
+        Log::info('Authenticated User: ', $user->toArray());
+        return response()->json($user);
     } catch (Exception $e) {
+        Log::error('Error during token parsing: ' . $e->getMessage());
         return response()->json(['error' => 'Unauthorized or invalid request'], 401);
     }
 }
 
 
+
 public function login(Request $request)
 {
-    // Validate the incoming data
     $validator = Validator::make($request->all(), [
         'email' => 'required|email',
         'password' => 'required|string|min:6',
@@ -80,27 +94,23 @@ public function login(Request $request)
         return response()->json($validator->errors(), 400);
     }
 
-    // Check if the user exists based on email
     $user = User::where('email', $request->email)->first();
 
-    // If user doesn't exist, return error
     if (!$user) {
         return response()->json(['message' => 'Email does not exist'], 404);
     }
 
-    // Verificăm parola
     if (!Hash::check($request->password, $user->password)) {
         return response()->json(['message' => 'Invalid password'], 401);
     }
 
-    // Dacă autentificarea este reușită, generăm token-ul JWT
     $token = JWTAuth::fromUser($user);
 
     // Trimitem token-ul JWT în răspuns
     return response()->json([
-        'token' => $token,  // Trimitem token-ul JWT
+        'token' => $token,  
         'message' => 'Login successful',
-        'uid' => $user->uid,  // Trimitem și UID-ul utilizatorului
+        'uid' => $user->uid,  
     ], 200);
 }
 public function googleLogin(Request $request)
