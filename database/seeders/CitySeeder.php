@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\City;
+use Illuminate\Support\Str;
 use Illuminate\Database\Seeder;
 
 use League\Csv\Reader;
@@ -21,15 +22,15 @@ class CitySeeder extends Seeder
             $iataCode = $row['iata_code'];
             $cityName = $row['name'];
         
-            // Verifică dacă iata_code și city_name nu sunt goale
-            if (!DB::table('cities')->where('iata_code', $iataCode)->exists()) {
-                // Adaugă datele în tabelul cities
-                DB::table('cities')->insert([
-                    'iata_code' => $iataCode,
-                    'city_name' => $cityName,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+            if (Str::contains(strtolower($cityName), 'airport')) {
+                if (!DB::table('cities')->where('iata_code', $iataCode)->exists()) {
+                    DB::table('cities')->insert([
+                        'iata_code' => $iataCode,
+                        'city_name' => $cityName,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
         }
     }        
