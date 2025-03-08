@@ -14,6 +14,11 @@ Route::middleware('auth:api')->get('user', [AuthController::class, 'getUserData'
 
 Route::get('/iata-code', [FlightController::class, 'getIataCode']);
 
+Route::get('/airport-suggestions', [FlightController::class, 'getAirportSuggestions']);
+
+Route::get('/airport-for-city', [FlightController::class, 'getAirportsForCity']);
+
+
 Route::middleware('auth:api')->group(function () {
     Route::post('/search-history', [SearchHistoryController::class, 'store']); // Salvează o căutare
     Route::get('/search-history', [SearchHistoryController::class, 'index']); // Obține istoricul căutărilor
