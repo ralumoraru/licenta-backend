@@ -14,9 +14,9 @@ Route::middleware('auth:api')->get('user', [AuthController::class, 'getUserData'
 
 Route::get('/iata-code', [FlightController::class, 'getIataCode']);
 
-Route::get('/airport-suggestions', [FlightController::class, 'getAirportSuggestions']);
-
 Route::get('/airport-for-city', [FlightController::class, 'getAirportsForCity']);
+
+Route::get('/airport-suggestions', [FlightController::class, 'getAirportSuggestions']);
 
 
 Route::middleware('auth:api')->group(function () {

@@ -37,25 +37,27 @@ class FlightController extends Controller
     
     
     public function getAirportSuggestions(Request $request)
-    {
-        $query = $request->query('query');
-    
-        if (!$query) {
-            return response()->json(['error' => 'Query parameter is required'], 400);
-        }
-    
-        // Căutare aeroporturi care conțin textul introdus de utilizator
-        $airports = DB::table('cities')
-            ->whereRaw('LOWER(airport_name) LIKE ?', [strtolower("%$query%")])  // Folosește airport_name pentru căutare
-            ->limit(10)
-            ->get();
-    
-        if ($airports->isEmpty()) {
-            return response()->json([]);
-        }
-    
-        return response()->json($airports);
+{
+    $query = $request->query('query');
+
+    if (!$query) {
+        return response()->json(['error' => 'Query parameter is required'], 400);
     }
+
+    // Căutare după numele aeroportului și numele orașului
+    $airports = DB::table('cities')
+        ->whereRaw('LOWER(airport_name) LIKE ?', [strtolower("%$query%")])
+        ->orWhereRaw('LOWER(city_name) LIKE ?', [strtolower("%$query%")])
+        ->limit(10)
+        ->get(['airport_name', 'iata_code', 'city_name']);
+
+    if ($airports->isEmpty()) {
+        return response()->json([]);
+    }
+
+    return response()->json($airports);
+}
+
 
 
 public function getAirportsForCity(Request $request)
