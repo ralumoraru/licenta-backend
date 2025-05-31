@@ -6,6 +6,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -66,4 +67,19 @@ class User extends Authenticatable implements JWTSubject
     {
         return []; // Poți adăuga revendicări personalizate dacă este nevoie
     }
+
+    public function favorites()
+{
+    return $this->hasMany(Favorite::class);
+}
+    /**
+     * Get the favorite searches for the user.
+     */
+    public function favoriteSearches(): HasMany
+    {
+        return $this->hasMany(Favorite::class, 'user_id');
+    }
+
+
+
 }

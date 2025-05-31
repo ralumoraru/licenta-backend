@@ -81,6 +81,41 @@ public function getUserData(Request $request)
     }
 }
 
+public function updateUser(Request $request)
+{
+    try {
+        $user = JWTAuth::parseToken()->authenticate();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $rules = [
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|string|email|max:255|unique:users,email,' . $user->id,
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        if ($request->has('name')) {
+            $user->name = $request->name;
+        }
+
+        if ($request->has('email')) {
+            $user->email = $request->email;
+        }
+
+        $user->save();
+
+        return response()->json(['message' => 'User updated successfully', 'user' => $user], 200);
+    } catch (Exception $e) {
+        return response()->json(['error' => 'Failed to update user: ' . $e->getMessage()], 500);
+    }
+}
 
 
 public function login(Request $request)

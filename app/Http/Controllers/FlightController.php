@@ -36,7 +36,7 @@ class FlightController extends Controller
     }
     
     
-    public function getAirportSuggestions(Request $request)
+public function getAirportSuggestions(Request $request)
 {
     $query = $request->query('query');
 
@@ -44,16 +44,13 @@ class FlightController extends Controller
         return response()->json(['error' => 'Query parameter is required'], 400);
     }
 
-    // Căutare după numele aeroportului și numele orașului
+    // Căutare după numele aeroportului, numele orașului sau codul IATA
     $airports = DB::table('cities')
         ->whereRaw('LOWER(airport_name) LIKE ?', [strtolower("%$query%")])
         ->orWhereRaw('LOWER(city_name) LIKE ?', [strtolower("%$query%")])
+        ->orWhereRaw('LOWER(iata_code) LIKE ?', [strtolower("%$query%")])
         ->limit(10)
         ->get(['airport_name', 'iata_code', 'city_name']);
-
-    if ($airports->isEmpty()) {
-        return response()->json([]);
-    }
 
     return response()->json($airports);
 }
@@ -80,6 +77,31 @@ public function getAirportsForCity(Request $request)
 
     return response()->json($airports);
 }
+
+// Funcție pentru a obține numele aeroportului pe baza codului IATA
+    public function getAirportNameByIataCode(Request $request)
+    {
+        $iataCode = $request->query('iata_code');
+
+        if (!$iataCode) {
+            return response()->json(['error' => 'IATA code parameter is required'], 400);
+        }
+
+        // Căutăm aeroportul în funcție de codul IATA
+        $airport = DB::table('cities')
+            ->where('iata_code', strtoupper($iataCode))  // Asigură-te că IATA este în majuscule
+            ->first();
+
+        if ($airport) {
+            return response()->json([
+                'airport_name' => $airport->airport_name,
+                'iata_code' => $airport->iata_code,
+                'city_name' => $airport->city_name,
+            ]);
+        } else {
+            return response()->json(['error' => 'Airport not found for IATA code'], 404);
+        }
+    }
 
     
 
